@@ -1,11 +1,19 @@
 FROM ruby:2.3
 
 RUN apt-get update && apt-get install -y curl
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-RUN chmod +x ./kubectl
-RUN mv ./kubectl /usr/local/bin/kubectl
+
+ARG KUBECTL_VERSION="1.14.6"
+ARG KUBECTL_BUILD_DATE="2019-08-22"
+
+RUN curl -L https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_VERSION}/${KUBECTL_BUILD_DATE}/bin/linux/amd64/kubectl > /usr/local/bin/kubectl \
+    && chmod +x /usr/local/bin/kubectl
+
+# install aws-iam-authenticator
+RUN curl -L "https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_VERSION}/${KUBECTL_BUILD_DATE}/bin/linux/amd64/aws-iam-authenticator" > /usr/local/bin/aws-iam-authenticator \
+    && chmod +x /usr/local/bin/aws-iam-authenticator
 
 COPY env_var_helper_client.sh env_var_helper_client.rb ./
 RUN chmod +x env_var_helper_client.sh
 
 ENTRYPOINT ["./env_var_helper_client.sh"]
+
